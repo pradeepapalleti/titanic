@@ -1,0 +1,15 @@
+{
+  "model_type": "logistic_regression",
+  "trained_on": "titanic.csv",
+  "intercept": -1.5208,
+  "coef_values": [-0.5436, 0.8541, 0.573, -0.1943, -0.0769, -0.0303, 0.1913, 0.0833, -0.2039, -0.3714, -0.5259],
+  "feature_means": [2.2992, 0.375, 29.1093, 0.4775, 0.3792, 2.9986, 0.2051, 0.0744, 1.8567, 0.5197, 2.0253],
+  "feature_stds": [0.8407, 0.4841, 12.6249, 0.9069, 0.764, 1.074, 0.4037, 0.2625, 1.1523, 0.4996, 0.8559],
+  "features": ["Pclass", "Sex_enc", "Age", "SibSp", "Parch", "FareLog", "Embarked_C", "Embarked_Q", "FamilySize", "IsAlone", "AgeGroup"],
+  "metrics": {
+    "accuracy": 0.7933,
+    "roc_auc": 0.723,
+    "train_samples": 712,
+    "test_samples": 179
+  }
+}

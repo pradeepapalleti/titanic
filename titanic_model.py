@@ -2,17 +2,16 @@
 Titanic Survival Prediction — Logistic Regression
 ===================================================
 Full pipeline: preprocessing → feature engineering → training →
-evaluation → misclassification analysis → model export.
+evaluation → model export.
 
 Usage:
-  pip install scikit-learn pandas numpy matplotlib seaborn joblib
-  python titanic_model.py
+    pip install scikit-learn pandas numpy
+    python titanic_model.py
 """
 
 import pandas as pd
 import numpy as np
 import json
-import joblib
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -22,9 +21,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import (
     accuracy_score, roc_auc_score,
     confusion_matrix, classification_report,
-    ConfusionMatrixDisplay, RocCurveDisplay,
 )
-import matplotlib.pyplot as plt
 
 # ─────────────────────────────────────────────────────────────
 # 1. LOAD DATA
@@ -172,41 +169,31 @@ print("Feature Coefficients (standardized):")
 print(coef_df.to_string(index=False))
 
 # ─────────────────────────────────────────────────────────────
-# 9. PLOTS
+# 9. SAVE A LIGHTWEIGHT MODEL ARTIFACT
 # ─────────────────────────────────────────────────────────────
-fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-fig.suptitle('Titanic — Logistic Regression Analysis', fontsize=14, fontweight='bold')
+model_artifact = {
+    'model_type': 'logistic_regression',
+    'trained_on': 'titanic.csv',
+    'intercept': float(model.intercept_[0]),
+    'coef_values': model.coef_[0].tolist(),
+    'feature_means': scaler.mean_.tolist(),
+    'feature_stds': scaler.scale_.tolist(),
+    'features': FEATURES,
+    'metrics': {
+        'accuracy': float(acc),
+        'roc_auc': float(auc),
+        'train_samples': int(len(X_train)),
+        'test_samples': int(len(X_test)),
+    },
+}
 
-# Confusion matrix
-ConfusionMatrixDisplay(cm, display_labels=['Died','Survived']).plot(ax=axes[0], colorbar=False)
-axes[0].set_title('Confusion Matrix')
+with open('titanic_model.json', 'w', encoding='utf-8') as f:
+    json.dump(model_artifact, f, indent=2)
 
-# ROC curve
-RocCurveDisplay.from_predictions(y_test, y_prob, ax=axes[1], name=f'LR (AUC={auc:.3f})')
-axes[1].set_title('ROC Curve')
-
-# Coefficients
-colors = ['#2e8b57' if c > 0 else '#b84c2e' for c in coef_df['Coefficient']]
-axes[2].barh(coef_df['Feature'], coef_df['Coefficient'], color=colors)
-axes[2].axvline(0, color='black', lw=0.8)
-axes[2].set_title('Feature Coefficients')
-axes[2].set_xlabel('Coefficient (standardized)')
-
-plt.tight_layout()
-plt.savefig('titanic_analysis.png', dpi=150, bbox_inches='tight')
-print("\nPlot saved: titanic_analysis.png")
-plt.show()
+print("\nModel saved: titanic_model.json")
 
 # ─────────────────────────────────────────────────────────────
-# 10. SAVE MODEL ARTIFACTS
-# ─────────────────────────────────────────────────────────────
-joblib.dump(model,    'titanic_model.pkl')
-joblib.dump(scaler,   'titanic_scaler.pkl')
-joblib.dump(FEATURES, 'feature_names.pkl')
-print("Model saved: titanic_model.pkl, titanic_scaler.pkl, feature_names.pkl")
-
-# ─────────────────────────────────────────────────────────────
-# 11. INFERENCE EXAMPLE (how to use saved model)
+# 10. INFERENCE EXAMPLE (how to use saved model)
 # ─────────────────────────────────────────────────────────────
 def predict_survival(pclass, sex, age, sibsp, parch, fare, embarked,
                      model=model, scaler=scaler):

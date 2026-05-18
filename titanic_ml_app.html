@@ -3,664 +3,588 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Titanic · Survival Predictor</title>
+<title>Titanic Survival Predictor</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --ink:      #0e1117;
-    --paper:    #f5f0e8;
-    --ocean:    #0d3b5e;
-    --tide:     #1a6b9a;
-    --seafoam:  #3ab5c6;
-    --amber:    #d4870a;
-    --rust:     #b84c2e;
-    --cream:    #faf7f2;
-    --muted:    #7a7060;
-    --border:   #d4c8b0;
-    --survived: #2e8b57;
-    --died:     #b84c2e;
+    --bg: #08131f;
+    --bg-soft: #0f1d2e;
+    --card: rgba(9, 18, 29, 0.78);
+    --card-strong: #0f1d2e;
+    --line: rgba(255, 255, 255, 0.12);
+    --text: #edf3f8;
+    --muted: #9fb0c3;
+    --brand: #6fd1ff;
+    --brand-2: #8bffcf;
+    --gold: #f5c56d;
+    --green: #32d296;
+    --red: #ff6a5e;
+    --shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+    --radius: 22px;
   }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
   body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--paper);
-    color: var(--ink);
-    min-height: 100vh;
+    font-family: 'Manrope', sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(circle at top left, rgba(111, 209, 255, 0.18), transparent 30%),
+      radial-gradient(circle at 80% 10%, rgba(139, 255, 207, 0.16), transparent 25%),
+      linear-gradient(180deg, #07111c 0%, #08131f 55%, #06101a 100%);
+    overflow-x: hidden;
   }
 
-  /* ── HEADER ── */
-  header {
-    background: var(--ocean);
-    color: var(--paper);
-    padding: 0;
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,.65), transparent 85%);
+    pointer-events: none;
+  }
+
+  .wrap {
     position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 20px 44px;
+  }
+
+  .hero {
+    display: grid;
+    gap: 18px;
+    grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.85fr);
+    align-items: end;
+    padding: 28px;
+    border: 1px solid var(--line);
+    border-radius: calc(var(--radius) + 6px);
+    background: linear-gradient(145deg, rgba(11, 23, 36, .94), rgba(12, 24, 39, .7));
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px;
+    margin-bottom: 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(111, 209, 255, 0.24);
+    background: rgba(111, 209, 255, 0.08);
+    color: var(--brand);
+    font-size: 12px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    width: fit-content;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Fraunces', serif;
+    margin: 0;
+    line-height: 1.05;
+  }
+
+  h1 {
+    font-size: clamp(2.6rem, 6vw, 5.2rem);
+    letter-spacing: -.04em;
+  }
+
+  .hero p, .section-copy, .meta, .small, .helper {
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .hero-copy { max-width: 760px; }
+
+  .hero-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .stat {
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text);
+  }
+
+  .stat-label {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: .88rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    margin-top: 18px;
+  }
+
+  .panel, .card {
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    background: var(--card);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+  }
+
+  .card { padding: 22px; }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .section-title h2 {
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    letter-spacing: -.03em;
+  }
+
+  .section-copy { margin: 0; font-size: .98rem; }
+
+  .notice {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(245, 197, 109, 0.1);
+    border: 1px solid rgba(245, 197, 109, 0.22);
+    color: #f9ddb0;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .field label {
+    display: block;
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    color: var(--text);
+    font: inherit;
+    outline: none;
+    transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
+  }
+
+  input:focus, select:focus {
+    border-color: rgba(111, 209, 255, 0.55);
+    box-shadow: 0 0 0 4px rgba(111, 209, 255, 0.12);
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+  }
+
+  .btn {
+    appearance: none;
+    border: 0;
+    border-radius: 999px;
+    padding: 13px 18px;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 800;
+    transition: transform .15s ease, filter .2s ease, background .2s ease;
+  }
+
+  .btn:hover { transform: translateY(-1px); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: #06131d;
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.06);
+    color: var(--text);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .result {
+    display: none;
+    margin-top: 16px;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .result-head {
+    padding: 20px;
+    display: grid;
+    gap: 4px;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
+  .result-emoji { font-size: 2.1rem; }
+  .result-title { font-size: 1.7rem; font-weight: 800; }
+  .result-sub { color: rgba(255,255,255,0.86); }
+  .result-body { padding: 20px; background: rgba(7, 16, 27, 0.9); }
+
+  .meter-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: var(--muted);
+    font-size: .92rem;
+  }
+
+  .meter-track {
+    height: 14px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
     overflow: hidden;
   }
-  .header-waves {
-    position: absolute; bottom: -1px; left: 0; width: 100%; height: 60px; opacity: .25;
-  }
-  .header-inner {
-    max-width: 1100px; margin: 0 auto; padding: 40px 32px 56px;
-    display: flex; align-items: flex-end; gap: 32px; position: relative; z-index: 1;
-  }
-  .ship-icon { font-size: 56px; line-height: 1; filter: drop-shadow(0 4px 12px rgba(0,0,0,.4)); }
-  .header-text h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(28px, 5vw, 48px);
-    font-weight: 900; letter-spacing: -1px; line-height: 1.1;
-  }
-  .header-text p {
-    font-size: 15px; color: #a8c4d4; margin-top: 6px; font-weight: 300;
-  }
-  .badge {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
-    border-radius: 20px; padding: 4px 12px; font-size: 12px;
-    font-family: 'DM Mono', monospace; color: var(--seafoam); margin-top: 10px;
+
+  .meter-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    transition: width .8s cubic-bezier(.2,.8,.2,1);
   }
 
-  /* ── TABS ── */
-  .tab-bar {
-    background: var(--ocean); border-top: 1px solid rgba(255,255,255,.1);
-    position: relative; z-index: 2;
-  }
-  .tab-bar-inner {
-    max-width: 1100px; margin: 0 auto; padding: 0 32px;
-    display: flex; gap: 0;
-  }
-  .tab {
-    padding: 14px 24px; cursor: pointer; font-size: 13px; font-weight: 500;
-    color: #7099b4; border-bottom: 3px solid transparent;
-    transition: all .2s; letter-spacing: .5px; text-transform: uppercase;
-  }
-  .tab:hover { color: var(--paper); }
-  .tab.active { color: var(--seafoam); border-bottom-color: var(--seafoam); }
-
-  /* ── MAIN LAYOUT ── */
-  main { max-width: 1100px; margin: 0 auto; padding: 40px 32px; }
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  /* ── CARD ── */
-  .card {
-    background: var(--cream); border: 1px solid var(--border);
-    border-radius: 12px; padding: 28px; margin-bottom: 24px;
-  }
-  .card-title {
-    font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700;
-    color: var(--ocean); margin-bottom: 18px; padding-bottom: 12px;
-    border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px;
+  .drivers {
+    margin-top: 18px;
+    display: grid;
+    gap: 10px;
   }
 
-  /* ── FORM GRID ── */
-  .form-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 20px;
-  }
-  .field label {
-    display: block; font-size: 11px; font-weight: 500; text-transform: uppercase;
-    letter-spacing: .8px; color: var(--muted); margin-bottom: 6px;
-  }
-  .field select, .field input {
-    width: 100%; padding: 10px 14px; border: 1.5px solid var(--border);
-    border-radius: 8px; font-size: 14px; font-family: 'DM Sans', sans-serif;
-    background: white; color: var(--ink); outline: none;
-    transition: border-color .2s, box-shadow .2s;
-  }
-  .field select:focus, .field input:focus {
-    border-color: var(--tide); box-shadow: 0 0 0 3px rgba(26,107,154,.12);
+  .driver-row {
+    display: grid;
+    grid-template-columns: 110px 1fr 72px;
+    gap: 10px;
+    align-items: center;
+    font-size: .92rem;
   }
 
-  /* ── PREDICT BUTTON ── */
-  .btn-predict {
-    display: block; width: 100%; margin-top: 24px; padding: 15px;
-    background: var(--ocean); color: white; border: none; border-radius: 10px;
-    font-size: 16px; font-weight: 500; cursor: pointer; letter-spacing: .5px;
-    font-family: 'DM Sans', sans-serif; transition: background .2s, transform .1s;
-    position: relative; overflow: hidden;
+  .driver-name { color: var(--text); font-weight: 600; }
+  .driver-bar {
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
   }
-  .btn-predict:hover { background: var(--tide); }
-  .btn-predict:active { transform: scale(.99); }
+  .driver-fill { height: 100%; width: 0%; border-radius: inherit; }
+  .driver-value { text-align: right; font-variant-numeric: tabular-nums; }
 
-  /* ── RESULT ── */
-  #result-box {
-    display: none; margin-top: 24px; border-radius: 12px; overflow: hidden;
-    border: 2px solid transparent; animation: fadeUp .4s ease;
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
   }
-  @keyframes fadeUp { from { opacity:0; transform:translateY(12px) } to { opacity:1; transform:none } }
-  .result-header {
-    padding: 22px 28px; display: flex; align-items: center; gap: 16px;
+
+  .chip {
+    padding: 9px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text);
+    font-size: .9rem;
   }
-  .result-icon { font-size: 42px; }
-  .result-verdict { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 900; }
-  .result-sub { font-size: 14px; opacity: .8; margin-top: 3px; }
-  .result-body { background: white; padding: 20px 28px; }
-  .prob-bar-wrap { margin-top: 14px; }
-  .prob-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-  .prob-track { height: 10px; background: #e5ddd0; border-radius: 5px; overflow: hidden; }
-  .prob-fill { height: 100%; border-radius: 5px; transition: width 1s cubic-bezier(.4,0,.2,1); }
 
-  .feature-contrib { margin-top: 20px; }
-  .feature-contrib h4 { font-size: 12px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 10px; }
-  .contrib-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; font-size: 13px; }
-  .contrib-name { width: 90px; color: var(--muted); flex-shrink: 0; }
-  .contrib-track { flex: 1; height: 6px; background: #e5ddd0; border-radius: 3px; overflow: hidden; }
-  .contrib-fill { height: 100%; border-radius: 3px; }
-  .contrib-val { width: 52px; text-align: right; font-family: 'DM Mono',monospace; font-size: 12px; }
+  .small { font-size: .88rem; }
 
-  /* ── STATS GRID ── */
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px,1fr)); gap: 16px; margin-bottom: 24px; }
-  .stat-tile {
-    background: var(--cream); border: 1px solid var(--border); border-radius: 10px;
-    padding: 20px 18px; text-align: center;
+  .status {
+    margin-top: 10px;
+    font-size: .92rem;
+    color: var(--brand-2);
   }
-  .stat-val { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 700; color: var(--ocean); }
-  .stat-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-top: 4px; }
 
-  /* ── CONFUSION MATRIX ── */
-  .cm-wrap { display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
-  .cm-grid { display: grid; grid-template-columns: auto auto auto; gap: 0; }
-  .cm-cell {
-    width: 90px; height: 70px; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; font-family: 'DM Mono', monospace;
+  .muted { color: var(--muted); }
+
+  .pulse {
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    margin-right: 8px;
+    background: var(--green);
+    box-shadow: 0 0 0 0 rgba(50, 210, 150, 0.5);
+    animation: pulse 1.8s infinite;
   }
-  .cm-cell.header { background: transparent; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-  .cm-cell.tn { background: #d4edda; border-radius: 8px 0 0 0; }
-  .cm-cell.fp { background: #f8d7c8; border-radius: 0 8px 0 0; }
-  .cm-cell.fn { background: #fde8c8; border-radius: 0 0 0 8px; }
-  .cm-cell.tp { background: #c3e6cb; border-radius: 0 0 8px 0; }
-  .cm-val { font-size: 28px; font-weight: 500; }
-  .cm-sub { font-size: 10px; color: var(--muted); }
-  .cm-info { flex: 1; min-width: 220px; }
-  .cm-info p { font-size: 13px; line-height: 1.7; color: #4a4030; margin-bottom: 8px; }
-  .cm-info strong { color: var(--ocean); }
 
-  /* ── COEF CHART ── */
-  .coef-list { display: flex; flex-direction: column; gap: 8px; }
-  .coef-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-  .coef-name { width: 110px; flex-shrink: 0; color: var(--ink); font-family: 'DM Mono', monospace; font-size: 12px; }
-  .coef-bar-wrap { flex: 1; position: relative; height: 20px; display: flex; align-items: center; }
-  .coef-zero { position: absolute; left: 50%; width: 1px; height: 100%; background: var(--border); }
-  .coef-bar {
-    position: absolute; height: 14px; border-radius: 3px;
-    transition: width .8s cubic-bezier(.4,0,.2,1);
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(50, 210, 150, 0.45); }
+    70% { box-shadow: 0 0 0 12px rgba(50, 210, 150, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(50, 210, 150, 0); }
   }
-  .coef-bar.pos { left: 50%; background: var(--survived); }
-  .coef-bar.neg { right: 50%; background: var(--died); }
-  .coef-num { width: 60px; text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
 
-  /* ── MISCLASS TABLE ── */
-  .mis-tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
-  .mis-tab { padding: 8px 20px; font-size: 13px; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -2px; }
-  .mis-tab.active { color: var(--ocean); border-bottom-color: var(--ocean); font-weight: 500; }
-  .mis-panel { display: none; }
-  .mis-panel.active { display: block; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th {
-    text-align: left; padding: 9px 12px; font-size: 11px; text-transform: uppercase;
-    letter-spacing: .6px; color: var(--muted); border-bottom: 1.5px solid var(--border);
+  @media (max-width: 980px) {
+    .hero, .grid { grid-template-columns: 1fr; }
   }
-  td { padding: 9px 12px; border-bottom: 1px solid #ede5d4; font-family: 'DM Mono', monospace; font-size: 12px; }
-  tr:hover td { background: #f0ebe0; }
-  .prob-pill {
-    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500;
-  }
-  .prob-pill.high { background: #d4edda; color: #1d6b36; }
-  .prob-pill.mid  { background: #fde8c8; color: #8a4c00; }
-  .prob-pill.low  { background: #f8d7c8; color: #7a2010; }
 
-  /* ── INSIGHT CARD ── */
-  .insight { background: #edf5fb; border-left: 4px solid var(--tide); border-radius: 0 8px 8px 0; padding: 14px 18px; margin-top: 16px; font-size: 13px; line-height: 1.7; color: #1a3a50; }
-  .insight strong { color: var(--ocean); }
-
-  @media (max-width: 600px) {
-    .header-inner { padding: 24px 16px 40px; }
-    main { padding: 24px 16px; }
-    .tab { padding: 12px 14px; font-size: 11px; }
+  @media (max-width: 640px) {
+    .wrap { padding: 16px 14px 30px; }
+    .hero, .card { padding: 18px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .file-row, .driver-row { grid-template-columns: 1fr; }
+    .driver-value { text-align: left; }
   }
 </style>
 </head>
 <body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="pulse"></span> Titanic passenger survival model</div>
+        <h1>Enter passenger details and get a prediction.</h1>
+        <p>
+          This app uses a trained logistic regression model to estimate survival based on class,
+          sex, age, fare, family size, and embarkation details.
+        </p>
+        <div class="chips">
+          <span class="chip" id="chip-accuracy">Loading model...</span>
+          <span class="chip" id="chip-roc">Waiting for model data</span>
+          <span class="chip">Click Predict to see output</span>
+        </div>
+        <div class="status" id="model-status">The page is waiting for the saved model artifact.</div>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-value" id="metric-accuracy">--</div><div class="stat-label">Model accuracy</div></div>
+        <div class="stat"><div class="stat-value" id="metric-auc">--</div><div class="stat-label">ROC-AUC</div></div>
+        <div class="stat"><div class="stat-value" id="metric-features">--</div><div class="stat-label">Features used</div></div>
+        <div class="stat"><div class="stat-value" id="metric-samples">--</div><div class="stat-label">Training samples</div></div>
+      </div>
+    </section>
 
-<header>
-  <div class="header-inner">
-    <div class="ship-icon">🚢</div>
-    <div class="header-text">
-      <h1>Titanic Survival Predictor</h1>
-      <p>Logistic Regression · Trained on 712 passengers · April 1912</p>
-      <div class="badge">◉ Model Accuracy: 79.3%&nbsp;&nbsp;·&nbsp;&nbsp;ROC-AUC: 0.723</div>
-    </div>
-  </div>
-  <svg class="header-waves" viewBox="0 0 1440 60" preserveAspectRatio="none">
-    <path d="M0,30 C360,60 720,0 1080,30 C1260,45 1380,20 1440,30 L1440,60 L0,60 Z" fill="white" opacity=".06"/>
-    <path d="M0,45 C240,20 480,55 720,40 C960,25 1200,55 1440,45 L1440,60 L0,60 Z" fill="white" opacity=".04"/>
-  </svg>
-</header>
-
-<div class="tab-bar">
-  <div class="tab-bar-inner">
-    <div class="tab active" onclick="switchTab('predict',this)">⚓ Predict Survival</div>
-    <div class="tab" onclick="switchTab('model',this)">📊 Model Performance</div>
-    <div class="tab" onclick="switchTab('misclass',this)">🔍 Misclassification Analysis</div>
-    <div class="tab" onclick="switchTab('features',this)">📈 Feature Importance</div>
-  </div>
-</div>
-
-<main>
-
-<!-- ────────────── PREDICT PANEL ────────────── -->
-<div class="panel active" id="panel-predict">
-  <div class="card">
-    <div class="card-title">⚓ Passenger Profile</div>
-    <div class="form-grid">
-      <div class="field">
-        <label>Passenger Class</label>
-        <select id="pclass">
-          <option value="1">1st Class (Upper)</option>
-          <option value="2">2nd Class (Middle)</option>
-          <option value="3" selected>3rd Class (Lower)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Sex</label>
-        <select id="sex">
-          <option value="male" selected>Male</option>
-          <option value="female">Female</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Age (years)</label>
-        <input type="number" id="age" value="28" min="1" max="80" step="1" />
-      </div>
-      <div class="field">
-        <label>Siblings / Spouses aboard</label>
-        <input type="number" id="sibsp" value="0" min="0" max="8" step="1" />
-      </div>
-      <div class="field">
-        <label>Parents / Children aboard</label>
-        <input type="number" id="parch" value="0" min="0" max="6" step="1" />
-      </div>
-      <div class="field">
-        <label>Fare (£)</label>
-        <input type="number" id="fare" value="15" min="0" max="512" step="1" />
-      </div>
-      <div class="field">
-        <label>Port of Embarkation</label>
-        <select id="embarked">
-          <option value="S" selected>Southampton</option>
-          <option value="C">Cherbourg</option>
-          <option value="Q">Queenstown</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn-predict" onclick="predict()">⚙ Calculate Survival Probability</button>
-  </div>
-
-  <div id="result-box">
-    <div class="result-header" id="result-header">
-      <div class="result-icon" id="result-icon"></div>
-      <div>
-        <div class="result-verdict" id="result-verdict"></div>
-        <div class="result-sub" id="result-sub"></div>
-      </div>
-    </div>
-    <div class="result-body">
-      <div class="prob-bar-wrap">
-        <div class="prob-label"><span>Probability of Survival</span><span id="prob-pct"></span></div>
-        <div class="prob-track"><div class="prob-fill" id="prob-fill" style="width:0%"></div></div>
-      </div>
-      <div class="feature-contrib">
-        <h4>Top contributing factors</h4>
-        <div id="contrib-list"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ────────────── MODEL PANEL ────────────── -->
-<div class="panel" id="panel-model">
-  <div class="stats-grid">
-    <div class="stat-tile"><div class="stat-val">79.3%</div><div class="stat-lbl">Accuracy</div></div>
-    <div class="stat-tile"><div class="stat-val">0.723</div><div class="stat-lbl">ROC-AUC</div></div>
-    <div class="stat-tile"><div class="stat-val">712</div><div class="stat-lbl">Training samples</div></div>
-    <div class="stat-tile"><div class="stat-val">179</div><div class="stat-lbl">Test samples</div></div>
-    <div class="stat-tile"><div class="stat-val">37</div><div class="stat-lbl">Misclassified</div></div>
-    <div class="stat-tile"><div class="stat-val">11</div><div class="stat-lbl">Features used</div></div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">🟩 Confusion Matrix</div>
-    <div class="cm-wrap">
-      <div>
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;text-align:center">Predicted →</div>
-        <div class="cm-grid">
-          <div class="cm-cell header"></div>
-          <div class="cm-cell header">Died</div>
-          <div class="cm-cell header">Survived</div>
-
-          <div class="cm-cell header" style="writing-mode:vertical-lr;transform:rotate(180deg);font-size:10px">Actual ↑</div>
-          <div class="cm-cell tn">
-            <div class="cm-val">132</div>
-            <div class="cm-sub">True Neg</div>
+    <section class="grid">
+      <div class="panel">
+        <div class="card">
+          <div class="section-title">
+            <h2>Passenger form</h2>
+            <span class="small muted">Enter details and press Predict survival</span>
           </div>
-          <div class="cm-cell fp">
-            <div class="cm-val">7</div>
-            <div class="cm-sub">False Pos</div>
+          <div class="notice">Use the sample button if you want a quick example.</div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="pclass">Passenger class</label>
+              <select id="pclass">
+                <option value="1">1st class</option>
+                <option value="2">2nd class</option>
+                <option value="3" selected>3rd class</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="sex">Sex</label>
+              <select id="sex">
+                <option value="male" selected>Male</option>
+                <option value="female">Female</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="age">Age</label>
+              <input id="age" type="number" min="0" max="80" value="28" />
+            </div>
+            <div class="field">
+              <label for="fare">Fare</label>
+              <input id="fare" type="number" min="0" max="600" value="15" />
+            </div>
+            <div class="field">
+              <label for="sibsp">Siblings / spouses aboard</label>
+              <input id="sibsp" type="number" min="0" max="8" value="0" />
+            </div>
+            <div class="field">
+              <label for="parch">Parents / children aboard</label>
+              <input id="parch" type="number" min="0" max="6" value="0" />
+            </div>
+            <div class="field">
+              <label for="embarked">Embarked from</label>
+              <select id="embarked">
+                <option value="S" selected>Southampton</option>
+                <option value="C">Cherbourg</option>
+                <option value="Q">Queenstown</option>
+              </select>
+            </div>
           </div>
 
-          <div class="cm-cell header"></div>
-          <div class="cm-cell fn">
-            <div class="cm-val">30</div>
-            <div class="cm-sub">False Neg</div>
+          <div class="actions">
+            <button class="btn btn-primary" id="predict-btn" disabled>Predict survival</button>
+            <button class="btn btn-secondary" id="sample-btn" type="button">Load sample passenger</button>
           </div>
-          <div class="cm-cell tp">
-            <div class="cm-val">10</div>
-            <div class="cm-sub">True Pos</div>
+
+          <div class="result" id="result-box">
+            <div class="result-head" id="result-head">
+              <div class="result-emoji" id="result-emoji">⚓</div>
+              <div>
+                <div class="result-title" id="result-title">Waiting for prediction</div>
+                <div class="result-sub" id="result-sub">Fill in the form and press Predict survival.</div>
+              </div>
+            </div>
+            <div class="result-body">
+              <div class="meter-label"><span>Survival probability</span><span id="prob-text">0%</span></div>
+              <div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div>
+              <div class="drivers" id="drivers"></div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="cm-info">
-        <p><strong>True Negatives (132):</strong> Correctly predicted death — the model's strongest category, correctly identifying 95% of passengers who died.</p>
-        <p><strong>False Positives (7):</strong> Predicted survival but actually died. These passengers had "survival-favoring" traits (female, 1st class) yet perished.</p>
-        <p><strong>False Negatives (30):</strong> Predicted death but actually survived. Most are male passengers the model deemed low-probability.</p>
-        <p><strong>True Positives (10):</strong> Correctly predicted survival — lower recall (25%) suggests the model is conservative about predicting survivors.</p>
-      </div>
-    </div>
+    </section>
 
-    <div class="insight">
-      <strong>Key Insight:</strong> The model has strong specificity (predicting death) but lower sensitivity for survivors. This reflects the actual class imbalance — only 22.3% of passengers survived — causing the model to lean toward the "died" prediction. Techniques like class weighting or threshold adjustment can improve survivor recall.
-    </div>
   </div>
-
-  <div class="card">
-    <div class="card-title">📋 Classification Report</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Class</th><th>Precision</th><th>Recall</th><th>F1-Score</th><th>Support</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>🔴 Died (0)</td>
-          <td>0.8148</td><td>0.9496</td><td>0.8771</td><td>139</td>
-        </tr>
-        <tr>
-          <td>🟢 Survived (1)</td>
-          <td>0.5882</td><td>0.2500</td><td>0.3509</td><td>40</td>
-        </tr>
-        <tr style="font-weight:500">
-          <td>Weighted Avg</td>
-          <td>0.7642</td><td>0.7933</td><td>0.7595</td><td>179</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- ────────────── MISCLASSIFICATION PANEL ────────────── -->
-<div class="panel" id="panel-misclass">
-  <div class="card">
-    <div class="card-title">🔍 Misclassified Samples Deep Dive</div>
-
-    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
-      <div class="stat-tile"><div class="stat-val" style="color:var(--rust)">37</div><div class="stat-lbl">Total Errors</div></div>
-      <div class="stat-tile"><div class="stat-val" style="color:var(--amber)">7</div><div class="stat-lbl">False Positives</div></div>
-      <div class="stat-tile"><div class="stat-val" style="color:var(--died)">30</div><div class="stat-lbl">False Negatives</div></div>
-    </div>
-
-    <div class="mis-tabs">
-      <div class="mis-tab active" onclick="switchMis('fp',this)">False Positives — Predicted Survived, Actually Died (7)</div>
-      <div class="mis-tab" onclick="switchMis('fn',this)">False Negatives — Predicted Died, Actually Survived (30)</div>
-    </div>
-
-    <div class="mis-panel active" id="mis-fp">
-      <div class="insight" style="margin-bottom:16px">
-        <strong>Pattern:</strong> All 7 false positives are <strong>female</strong> passengers, mostly in 1st/2nd class with higher fares — exactly the profile the model associates with survival. These passengers had strong "survival signals" yet died, suggesting circumstantial or random factors the model can't capture.
-      </div>
-      <table>
-        <thead><tr><th>Class</th><th>Sex</th><th>Age</th><th>log(Fare)</th><th>Family Size</th><th>Predicted Prob</th></tr></thead>
-        <tbody id="fp-tbody"></tbody>
-      </table>
-    </div>
-
-    <div class="mis-panel" id="mis-fn">
-      <div class="insight" style="margin-bottom:16px">
-        <strong>Pattern:</strong> Most false negatives are <strong>male</strong> passengers (67%), often traveling alone in lower classes — the profile the model assigns low survival odds. Yet they survived, likely through luck, proximity to lifeboats, or heroic actions not captured in structured data.
-      </div>
-      <table>
-        <thead><tr><th>Class</th><th>Sex</th><th>Age</th><th>log(Fare)</th><th>Family Size</th><th>Predicted Prob</th></tr></thead>
-        <tbody id="fn-tbody"></tbody>
-      </table>
-    </div>
-  </div>
-</div>
-
-<!-- ────────────── FEATURES PANEL ────────────── -->
-<div class="panel" id="panel-features">
-  <div class="card">
-    <div class="card-title">📈 Logistic Regression Coefficients</div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:20px">Standardized coefficients — positive values increase survival probability, negative values decrease it.</p>
-    <div class="coef-list" id="coef-list"></div>
-    <div class="insight" style="margin-top:20px">
-      <strong>Top Drivers:</strong><br>
-      🟢 <strong>Sex (female)</strong> is the strongest predictor of survival (+0.854) — reflecting the "women and children first" policy.<br>
-      🟢 <strong>Age</strong> (+0.573) — younger passengers had higher odds, partially captured by AgeGroup.<br>
-      🔴 <strong>Passenger Class</strong> (-0.544) — higher class number (3rd class) significantly reduces survival odds.<br>
-      🔴 <strong>IsAlone</strong> (-0.371) — traveling alone was a disadvantage.
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-title">🧠 Feature Engineering Notes</div>
-    <table>
-      <thead><tr><th>Feature</th><th>Type</th><th>Description</th></tr></thead>
-      <tbody>
-        <tr><td>Pclass</td><td>Original</td><td>Ticket class (1 = 1st, 3 = 3rd)</td></tr>
-        <tr><td>Sex_enc</td><td>Encoded</td><td>Female = 1, Male = 0</td></tr>
-        <tr><td>Age</td><td>Imputed</td><td>Median-imputed for 174 missing values</td></tr>
-        <tr><td>SibSp / Parch</td><td>Original</td><td>Family aboard counts</td></tr>
-        <tr><td>FareLog</td><td>Engineered</td><td>log(1 + Fare) — reduces right skew</td></tr>
-        <tr><td>Embarked_C/Q</td><td>One-hot</td><td>Cherbourg and Queenstown dummies</td></tr>
-        <tr><td>FamilySize</td><td>Engineered</td><td>SibSp + Parch + 1</td></tr>
-        <tr><td>IsAlone</td><td>Engineered</td><td>1 if FamilySize == 1</td></tr>
-        <tr><td>AgeGroup</td><td>Binned</td><td>Child / Teen / Adult / Middle / Senior</td></tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-</main>
 
 <script>
-// ── MODEL DATA (baked-in from training) ──────────────────────────────────────
-const MODEL = {
-  intercept: -1.5208,
-  coef_values: [-0.5436, 0.8541, 0.5730, -0.1943, -0.0769, -0.0303, 0.1913, 0.0833, -0.2039, -0.3714, -0.5259],
-  feature_means: [2.2992, 0.375, 29.1093, 0.4775, 0.3792, 2.9986, 0.2051, 0.0744, 1.8567, 0.5197, 2.0253],
-  feature_stds:  [0.8407, 0.4841, 12.6249, 0.9069, 0.7640, 1.0740, 0.4037, 0.2625, 1.1523, 0.4996, 0.8559],
-  features: ['Pclass','Sex_enc','Age','SibSp','Parch','FareLog','Embarked_C','Embarked_Q','FamilySize','IsAlone','AgeGroup'],
-};
+  const MODEL = {
+    intercept: -1.5208,
+    coef_values: [-0.5436, 0.8541, 0.573, -0.1943, -0.0769, -0.0303, 0.1913, 0.0833, -0.2039, -0.3714, -0.5259],
+    feature_means: [2.2992, 0.375, 29.1093, 0.4775, 0.3792, 2.9986, 0.2051, 0.0744, 1.8567, 0.5197, 2.0253],
+    feature_stds: [0.8407, 0.4841, 12.6249, 0.9069, 0.764, 1.074, 0.4037, 0.2625, 1.1523, 0.4996, 0.8559],
+    features: ['Pclass', 'Sex_enc', 'Age', 'SibSp', 'Parch', 'FareLog', 'Embarked_C', 'Embarked_Q', 'FamilySize', 'IsAlone', 'AgeGroup'],
+    metrics: { accuracy: 0.7933, roc_auc: 0.723, train_samples: 712, test_samples: 179 }
+  };
 
-const COEFS_DISPLAY = [
-  ['Sex_enc',    0.8541, 'Female gender'],
-  ['Age',        0.5730, 'Age (years)'],
-  ['Pclass',    -0.5436, 'Ticket class'],
-  ['AgeGroup',  -0.5259, 'Age group bin'],
-  ['IsAlone',   -0.3714, 'Traveling alone'],
-  ['FamilySize',-0.2039, 'Family size'],
-  ['SibSp',     -0.1943, 'Siblings/Spouses'],
-  ['Embarked_C', 0.1913, 'Embarked Cherbourg'],
-  ['Embarked_Q', 0.0833, 'Embarked Queenstown'],
-  ['Parch',     -0.0769, 'Parents/Children'],
-  ['FareLog',   -0.0303, 'Log-transformed fare'],
-];
+  const samplePassenger = {
+    pclass: 1,
+    sex: 'female',
+    age: 26,
+    fare: 80,
+    sibsp: 1,
+    parch: 0,
+    embarked: 'C'
+  };
 
-const FP_SAMPLES = [
-  {Pclass:1,Sex_enc:1,Age:48.0,FareLog:4.65,FamilySize:3,Prob:.601},
-  {Pclass:1,Sex_enc:1,Age:8.2,FareLog:5.77,FamilySize:1,Prob:.683},
-  {Pclass:1,Sex_enc:1,Age:28.5,FareLog:4.29,FamilySize:2,Prob:.631},
-  {Pclass:1,Sex_enc:1,Age:15.3,FareLog:5.17,FamilySize:2,Prob:.732},
-  {Pclass:1,Sex_enc:1,Age:23.8,FareLog:5.28,FamilySize:1,Prob:.565},
-  {Pclass:2,Sex_enc:1,Age:31.1,FareLog:3.05,FamilySize:2,Prob:.540},
-  {Pclass:3,Sex_enc:1,Age:35.0,FareLog:1.77,FamilySize:2,Prob:.521},
-];
-const FN_SAMPLES = [
-  {Pclass:1,Sex_enc:0,Age:28.5,FareLog:4.78,FamilySize:1,Prob:.218},
-  {Pclass:2,Sex_enc:1,Age:28.5,FareLog:2.81,FamilySize:2,Prob:.483},
-  {Pclass:1,Sex_enc:0,Age:28.5,FareLog:4.05,FamilySize:2,Prob:.249},
-  {Pclass:1,Sex_enc:0,Age:21.9,FareLog:3.66,FamilySize:1,Prob:.135},
-  {Pclass:3,Sex_enc:0,Age:28.5,FareLog:2.34,FamilySize:1,Prob:.056},
-  {Pclass:2,Sex_enc:1,Age:35.3,FareLog:2.38,FamilySize:3,Prob:.346},
-  {Pclass:3,Sex_enc:0,Age:18.3,FareLog:2.16,FamilySize:2,Prob:.051},
-  {Pclass:3,Sex_enc:1,Age:29.6,FareLog:2.66,FamilySize:1,Prob:.267},
-  {Pclass:3,Sex_enc:1,Age:43.5,FareLog:2.11,FamilySize:2,Prob:.349},
-  {Pclass:1,Sex_enc:0,Age:25.7,FareLog:3.95,FamilySize:1,Prob:.155},
-  {Pclass:3,Sex_enc:0,Age:30.4,FareLog:2.79,FamilySize:1,Prob:.061},
-  {Pclass:1,Sex_enc:0,Age:26.4,FareLog:5.35,FamilySize:3,Prob:.220},
-  {Pclass:2,Sex_enc:0,Age:1.0,FareLog:2.94,FamilySize:1,Prob:.099},
-  {Pclass:1,Sex_enc:0,Age:45.2,FareLog:5.80,FamilySize:1,Prob:.186},
-];
+  const el = (id) => document.getElementById(id);
+  const sigmoid = (z) => 1 / (1 + Math.exp(-z));
 
-// ── SIGMOID ───────────────────────────────────────────────────────────────────
-const sigmoid = z => 1 / (1 + Math.exp(-z));
-
-// ── PREDICT ───────────────────────────────────────────────────────────────────
-function predict() {
-  const pclass    = +document.getElementById('pclass').value;
-  const sex       = document.getElementById('sex').value;
-  const age       = +document.getElementById('age').value;
-  const sibsp     = +document.getElementById('sibsp').value;
-  const parch     = +document.getElementById('parch').value;
-  const fare      = +document.getElementById('fare').value;
-  const embarked  = document.getElementById('embarked').value;
-
-  const sex_enc    = sex === 'female' ? 1 : 0;
-  const emb_c      = embarked === 'C' ? 1 : 0;
-  const emb_q      = embarked === 'Q' ? 1 : 0;
-  const familySize = sibsp + parch + 1;
-  const isAlone    = familySize === 1 ? 1 : 0;
-  const fareLog    = Math.log1p(fare);
-  let ageGroup = 2;
-  if (age <= 12) ageGroup = 0;
-  else if (age <= 18) ageGroup = 1;
-  else if (age <= 35) ageGroup = 2;
-  else if (age <= 60) ageGroup = 3;
-  else ageGroup = 4;
-
-  const raw = [pclass, sex_enc, age, sibsp, parch, fareLog, emb_c, emb_q, familySize, isAlone, ageGroup];
-
-  // Standardize
-  const std = raw.map((v, i) => (v - MODEL.feature_means[i]) / MODEL.feature_stds[i]);
-
-  // Log-odds
-  const logit = MODEL.intercept + std.reduce((s, v, i) => s + v * MODEL.coef_values[i], 0);
-  const prob  = sigmoid(logit);
-
-  showResult(prob, raw, std);
-}
-
-function showResult(prob, raw, std) {
-  const survived = prob >= 0.5;
-  const box = document.getElementById('result-box');
-  const hdr = document.getElementById('result-header');
-  box.style.display = 'block';
-
-  if (survived) {
-    box.style.border = '2px solid var(--survived)';
-    hdr.style.background = 'linear-gradient(135deg,#1d6b36,#2e8b57)';
-    hdr.style.color = 'white';
-    document.getElementById('result-icon').textContent = '🟢';
-    document.getElementById('result-verdict').textContent = 'SURVIVED';
-    document.getElementById('result-sub').textContent = `Probability: ${(prob*100).toFixed(1)}% — Model predicts this passenger survives`;
-  } else {
-    box.style.border = '2px solid var(--died)';
-    hdr.style.background = 'linear-gradient(135deg,#7a2010,#b84c2e)';
-    hdr.style.color = 'white';
-    document.getElementById('result-icon').textContent = '🔴';
-    document.getElementById('result-verdict').textContent = 'DID NOT SURVIVE';
-    document.getElementById('result-sub').textContent = `Probability: ${(prob*100).toFixed(1)}% — Model predicts this passenger does not survive`;
+  function ageGroup(age) {
+    if (age <= 12) return 0;
+    if (age <= 18) return 1;
+    if (age <= 35) return 2;
+    if (age <= 60) return 3;
+    return 4;
   }
 
-  const pct = Math.round(prob * 100);
-  document.getElementById('prob-pct').textContent = pct + '%';
-  const fill = document.getElementById('prob-fill');
-  fill.style.background = survived ? 'var(--survived)' : 'var(--died)';
-  setTimeout(() => { fill.style.width = pct + '%'; }, 50);
+  function setForm(values) {
+    el('pclass').value = values.pclass;
+    el('sex').value = values.sex;
+    el('age').value = values.age;
+    el('fare').value = values.fare;
+    el('sibsp').value = values.sibsp;
+    el('parch').value = values.parch;
+    el('embarked').value = values.embarked;
+  }
 
-  // Contributions
-  const contribs = MODEL.features.map((f, i) => ({
-    name: f, contribution: std[i] * MODEL.coef_values[i]
-  })).sort((a,b) => Math.abs(b.contribution) - Math.abs(a.contribution)).slice(0,5);
+  function readForm() {
+    const pclass = +el('pclass').value;
+    const sex = el('sex').value;
+    const age = +el('age').value;
+    const sibsp = +el('sibsp').value;
+    const parch = +el('parch').value;
+    const fare = +el('fare').value;
+    const embarked = el('embarked').value;
 
-  const maxAbs = Math.max(...contribs.map(c => Math.abs(c.contribution)));
-  const list = document.getElementById('contrib-list');
-  list.innerHTML = contribs.map(c => {
-    const pct2 = Math.round((Math.abs(c.contribution) / maxAbs) * 100);
-    const color = c.contribution > 0 ? 'var(--survived)' : 'var(--died)';
-    const dir   = c.contribution > 0 ? '▲' : '▼';
-    return `<div class="contrib-row">
-      <div class="contrib-name">${c.name}</div>
-      <div class="contrib-track"><div class="contrib-fill" style="width:${pct2}%;background:${color}"></div></div>
-      <div class="contrib-val" style="color:${color}">${dir} ${c.contribution.toFixed(3)}</div>
-    </div>`;
-  }).join('');
-}
+    const sexEnc = sex === 'female' ? 1 : 0;
+    const embC = embarked === 'C' ? 1 : 0;
+    const embQ = embarked === 'Q' ? 1 : 0;
+    const familySize = sibsp + parch + 1;
+    const isAlone = familySize === 1 ? 1 : 0;
+    const fareLog = Math.log1p(Math.max(0, fare));
+    const ageGrp = ageGroup(age);
 
-// ── TABS ─────────────────────────────────────────────────────────────────────
-function switchTab(id, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('panel-' + id).classList.add('active');
-}
+    return [pclass, sexEnc, age, sibsp, parch, fareLog, embC, embQ, familySize, isAlone, ageGrp];
+  }
 
-function switchMis(id, el) {
-  document.querySelectorAll('.mis-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.mis-panel').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('mis-' + id).classList.add('active');
-}
+  function renderDrivers(stdValues) {
+    const items = MODEL.features.map((name, index) => ({
+      name,
+      score: stdValues[index] * MODEL.coef_values[index]
+    })).sort((a, b) => Math.abs(b.score) - Math.abs(a.score)).slice(0, 5);
 
-// ── POPULATE TABLES ──────────────────────────────────────────────────────────
-function probPill(p) {
-  const cls = p >= .6 ? 'high' : p >= .4 ? 'mid' : 'low';
-  return `<span class="prob-pill ${cls}">${(p*100).toFixed(1)}%</span>`;
-}
-function sexLabel(v) { return v === 1 ? '👩 Female' : '👨 Male'; }
-function classLabel(v) { return ['','1st 🟡','2nd 🔵','3rd ⚪'][v] || v; }
+    const maxAbs = Math.max(...items.map((item) => Math.abs(item.score)), 0.0001);
+    el('drivers').innerHTML = items.map((item) => {
+      const width = Math.max(8, Math.round((Math.abs(item.score) / maxAbs) * 100));
+      const color = item.score >= 0 ? 'var(--green)' : 'var(--red)';
+      const sign = item.score >= 0 ? '+' : '−';
+      return `
+        <div class="driver-row">
+          <div class="driver-name">${item.name}</div>
+          <div class="driver-bar"><div class="driver-fill" style="width:${width}%;background:${color}"></div></div>
+          <div class="driver-value" style="color:${color}">${sign}${Math.abs(item.score).toFixed(3)}</div>
+        </div>
+      `;
+    }).join('');
+  }
 
-function populateTable(tbodyId, samples) {
-  const tbody = document.getElementById(tbodyId);
-  tbody.innerHTML = samples.map(s => `
-    <tr>
-      <td>${classLabel(s.Pclass)}</td>
-      <td>${sexLabel(s.Sex_enc)}</td>
-      <td>${s.Age.toFixed(1)}</td>
-      <td>${s.FareLog.toFixed(3)}</td>
-      <td>${s.FamilySize}</td>
-      <td>${probPill(s.Prob)}</td>
-    </tr>`).join('');
-}
-populateTable('fp-tbody', FP_SAMPLES);
-populateTable('fn-tbody', FN_SAMPLES);
+  function showResult(probability, stdValues) {
+    const survived = probability >= 0.5;
+    const head = el('result-head');
+    const fill = el('meter-fill');
 
-// ── COEFFICIENT CHART ────────────────────────────────────────────────────────
-const maxCoef = Math.max(...COEFS_DISPLAY.map(c => Math.abs(c[1])));
-document.getElementById('coef-list').innerHTML = COEFS_DISPLAY.map(([name, val, label]) => {
-  const pct = Math.round(Math.abs(val) / maxCoef * 50);
-  const isPos = val > 0;
-  const color = isPos ? 'var(--survived)' : 'var(--died)';
-  return `<div class="coef-row">
-    <div class="coef-name" title="${label}">${name}</div>
-    <div class="coef-bar-wrap">
-      <div class="coef-zero"></div>
-      <div class="coef-bar ${isPos?'pos':'neg'}" style="width:${pct}%;background:${color}"></div>
-    </div>
-    <div class="coef-num" style="color:${color}">${val > 0 ? '+' : ''}${val.toFixed(4)}</div>
-  </div>`;
-}).join('');
+    el('result-box').style.display = 'block';
+    head.style.background = survived
+      ? 'linear-gradient(135deg, rgba(50,210,150,.26), rgba(16,38,31,.95))'
+      : 'linear-gradient(135deg, rgba(255,106,94,.26), rgba(41,14,17,.95))';
+
+    el('result-emoji').textContent = survived ? '🟢' : '🔴';
+    el('result-title').textContent = survived ? 'Predicted to survive' : 'Predicted not to survive';
+    el('result-sub').textContent = `The model estimates a ${(probability * 100).toFixed(1)}% chance of survival.`;
+    el('prob-text').textContent = `${(probability * 100).toFixed(1)}%`;
+    fill.style.width = `${Math.round(probability * 100)}%`;
+    fill.style.background = survived
+      ? 'linear-gradient(90deg, var(--green), var(--brand-2))'
+      : 'linear-gradient(90deg, var(--red), #ff9d8f)';
+
+    renderDrivers(stdValues);
+  }
+
+  function predict() {
+    const raw = readForm();
+    const stdValues = raw.map((value, index) => (value - MODEL.feature_means[index]) / MODEL.feature_stds[index]);
+    const logit = MODEL.intercept + stdValues.reduce((sum, value, index) => sum + (value * MODEL.coef_values[index]), 0);
+    showResult(sigmoid(logit), stdValues);
+  }
+
+  el('metric-accuracy').textContent = `${(MODEL.metrics.accuracy * 100).toFixed(1)}%`;
+  el('metric-auc').textContent = MODEL.metrics.roc_auc.toFixed(3);
+  el('metric-features').textContent = `${MODEL.features.length}`;
+  el('metric-samples').textContent = `${MODEL.metrics.train_samples}`;
+  el('chip-accuracy').textContent = `Accuracy ${(MODEL.metrics.accuracy * 100).toFixed(1)}%`;
+  el('chip-roc').textContent = `ROC-AUC ${MODEL.metrics.roc_auc.toFixed(3)}`;
+  el('model-status').textContent = 'Ready. Click Predict survival to see the result.';
+  el('predict-btn').disabled = false;
+
+  el('predict-btn').addEventListener('click', predict);
+  el('sample-btn').addEventListener('click', () => {
+    setForm(samplePassenger);
+    predict();
+  });
+
+  setForm(samplePassenger);
 </script>
 </body>
 </html>
