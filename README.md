@@ -5,10 +5,10 @@ This project trains a simple Titanic survival model and serves a small browser a
 ## What’s in the project
 
 - `titanic.csv` - the dataset used to train the model.
-- `titanic_model.py` - trains the logistic regression model and exports `titanic_model.json`.
+- `titanic_model.py` - trains the logistic regression model and exports `titanic_model.json` and `titanic_analysis.png`.
 - `titanic_model.json` - the saved model artifact with the learned coefficients, scaling values, and metrics.
 - `titanic_ml_app.html` - the frontend where you enter passenger details and get a prediction.
-- `model_output.svg` - a visual sample of the model output.
+- `titanic_analysis.png` - visualization of model evaluation (confusion matrix, ROC curve, feature coefficients).
 
 ## How to train the model
 
@@ -47,7 +47,7 @@ http://localhost:8000/titanic_ml_app.html
 
 ## Sample output image
 
-![Titanic model output](model_output.svg)
+![Titanic model analysis](titanic_analysis.png)
 
 ## Notes
 

@@ -15,12 +15,14 @@ import json
 import warnings
 warnings.filterwarnings('ignore')
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import (
     accuracy_score, roc_auc_score,
-    confusion_matrix, classification_report,
+    confusion_matrix, classification_report, roc_curve,
 )
 
 # ─────────────────────────────────────────────────────────────
@@ -167,6 +169,47 @@ coef_df = pd.DataFrame({
 print(f"\n{'='*40}")
 print("Feature Coefficients (standardized):")
 print(coef_df.to_string(index=False))
+
+# ─────────────────────────────────────────────────────────────
+# 8B. GENERATE ANALYSIS VISUALIZATION
+# ─────────────────────────────────────────────────────────────
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+fig.suptitle('Titanic — Logistic Regression Analysis', fontsize=16, fontweight='bold')
+
+# Confusion Matrix
+sns.heatmap(cm, annot=True, fmt='d', cmap='viridis', ax=axes[0],
+            xticklabels=['Died', 'Survived'],
+            yticklabels=['Died', 'Survived'],
+            cbar=False, annot_kws={'size': 12})
+axes[0].set_title('Confusion Matrix', fontsize=12, fontweight='bold')
+axes[0].set_ylabel('True label')
+axes[0].set_xlabel('Predicted label')
+
+# ROC Curve
+fpr, tpr, _ = roc_curve(y_test, y_prob)
+axes[1].plot(fpr, tpr, color='#0088cc', lw=2, label=f'LR (AUC={auc:.3f})')
+axes[1].plot([0, 1], [0, 1], color='gray', lw=1, linestyle='--', alpha=0.5)
+axes[1].set_xlim([-0.02, 1.02])
+axes[1].set_ylim([-0.02, 1.02])
+axes[1].set_xlabel('False Positive Rate (Positive label: 1)')
+axes[1].set_ylabel('True Positive Rate (Positive label: 1)')
+axes[1].set_title('ROC Curve', fontsize=12, fontweight='bold')
+axes[1].legend(loc='lower right')
+axes[1].grid(True, alpha=0.3)
+
+# Feature Coefficients
+coef_sorted = coef_df.sort_values('Coefficient')
+colors = ['#d7553a' if x < 0 else '#2ca02c' for x in coef_sorted['Coefficient']]
+axes[2].barh(coef_sorted['Feature'], coef_sorted['Coefficient'], color=colors)
+axes[2].set_xlabel('Coefficient (standardized)')
+axes[2].set_title('Feature Coefficients', fontsize=12, fontweight='bold')
+axes[2].axvline(x=0, color='black', linestyle='-', linewidth=0.8)
+axes[2].grid(True, axis='x', alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('titanic_analysis.png', dpi=150, bbox_inches='tight')
+print("\nVisualization saved: titanic_analysis.png")
+plt.close()
 
 # ─────────────────────────────────────────────────────────────
 # 9. SAVE A LIGHTWEIGHT MODEL ARTIFACT
