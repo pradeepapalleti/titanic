@@ -18,7 +18,7 @@ warnings.filterwarnings('ignore')
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import (
     accuracy_score, roc_auc_score,
@@ -107,7 +107,7 @@ model = LogisticRegression(
     solver='lbfgs',
 )
 model.fit(X_train_s, y_train)
-print("\nModel trained ✓")
+print("\nModel trained [OK]")
 
 # ─────────────────────────────────────────────────────────────
 # 6. EVALUATION
@@ -171,8 +171,10 @@ print("Feature Coefficients (standardized):")
 print(coef_df.to_string(index=False))
 
 # ─────────────────────────────────────────────────────────────
-# 8B. GENERATE ANALYSIS VISUALIZATION
+# 8B. GENERATE COMPREHENSIVE VISUALIZATIONS
 # ─────────────────────────────────────────────────────────────
+
+# 1. Main Analysis (Confusion Matrix, ROC Curve, Feature Coefficients)
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 fig.suptitle('Titanic — Logistic Regression Analysis', fontsize=16, fontweight='bold')
 
@@ -208,8 +210,254 @@ axes[2].grid(True, axis='x', alpha=0.3)
 
 plt.tight_layout()
 plt.savefig('titanic_analysis.png', dpi=150, bbox_inches='tight')
-print("\nVisualization saved: titanic_analysis.png")
+print("[OK] Visualization saved: titanic_analysis.png")
 plt.close()
+
+# 2. Feature Distributions
+fig, axes = plt.subplots(3, 4, figsize=(16, 12))
+fig.suptitle('Feature Distributions by Survival Status', fontsize=16, fontweight='bold')
+axes = axes.flatten()
+
+for idx, feature in enumerate(FEATURES):
+    axes[idx].hist(X_test[X_test.index.isin(y_test[y_test==0].index)][feature], 
+                   alpha=0.6, label='Died', color='#d7553a', bins=20)
+    axes[idx].hist(X_test[X_test.index.isin(y_test[y_test==1].index)][feature], 
+                   alpha=0.6, label='Survived', color='#2ca02c', bins=20)
+    axes[idx].set_title(feature, fontweight='bold')
+    axes[idx].set_ylabel('Frequency')
+    axes[idx].legend()
+    axes[idx].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('feature_distributions.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: feature_distributions.png")
+plt.close()
+
+# 3. Boxplots for Key Features
+fig, axes = plt.subplots(2, 3, figsize=(15, 8))
+fig.suptitle('Feature Boxplots by Survival Status', fontsize=16, fontweight='bold')
+axes = axes.flatten()
+
+key_features = ['Age', 'FareLog', 'Pclass', 'FamilySize', 'AgeGroup']
+for idx, feature in enumerate(key_features):
+    survived_data = X_test[X_test.index.isin(y_test[y_test==1].index)][feature]
+    died_data = X_test[X_test.index.isin(y_test[y_test==0].index)][feature]
+    
+    bp = axes[idx].boxplot([died_data, survived_data], labels=['Died', 'Survived'],
+                           patch_artist=True)
+    for patch, color in zip(bp['boxes'], ['#d7553a', '#2ca02c']):
+        patch.set_facecolor(color)
+        patch.set_alpha(0.6)
+    axes[idx].set_title(feature, fontweight='bold')
+    axes[idx].set_ylabel('Value')
+    axes[idx].grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.savefig('boxplots.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: boxplots.png")
+plt.close()
+
+# 4. Feature Correlation Heatmap
+fig, ax = plt.subplots(figsize=(12, 10))
+correlation_matrix = df[FEATURES + [TARGET]].corr()
+sns.heatmap(correlation_matrix, annot=True, fmt='.2f', cmap='coolwarm', 
+            center=0, ax=ax, square=True, cbar_kws={'label': 'Correlation'})
+ax.set_title('Feature Correlation Heatmap', fontsize=14, fontweight='bold', pad=20)
+plt.tight_layout()
+plt.savefig('feature_heatmap.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: feature_heatmap.png")
+plt.close()
+
+# 5. Confusion Matrices at Different Thresholds
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+fig.suptitle('Confusion Matrices at Different Prediction Thresholds', fontsize=14, fontweight='bold')
+
+thresholds = [0.3, 0.5, 0.7]
+for idx, threshold in enumerate(thresholds):
+    y_pred_thresh = (y_prob >= threshold).astype(int)
+    cm_thresh = confusion_matrix(y_test, y_pred_thresh)
+    
+    sns.heatmap(cm_thresh, annot=True, fmt='d', cmap='Blues', ax=axes[idx],
+                xticklabels=['Died', 'Survived'],
+                yticklabels=['Died', 'Survived'],
+                cbar=False, annot_kws={'size': 12})
+    axes[idx].set_title(f'Threshold = {threshold}', fontweight='bold')
+    axes[idx].set_ylabel('True label')
+    axes[idx].set_xlabel('Predicted label')
+
+plt.tight_layout()
+plt.savefig('confusion_matrices.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: confusion_matrices.png")
+plt.close()
+
+# 6. Prediction Probability Distribution
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.hist(y_prob[y_test==0], alpha=0.6, label='Died (actual)', color='#d7553a', bins=30)
+ax.hist(y_prob[y_test==1], alpha=0.6, label='Survived (actual)', color='#2ca02c', bins=30)
+ax.set_xlabel('Predicted Probability of Survival', fontsize=12)
+ax.set_ylabel('Frequency', fontsize=12)
+ax.set_title('Distribution of Predicted Probabilities', fontsize=14, fontweight='bold')
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('Output 1.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: Output 1.png")
+plt.close()
+
+# 7. Model Performance Metrics Summary
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.axis('off')
+
+metrics_text = f"""
+MODEL PERFORMANCE SUMMARY
+{'='*50}
+
+Accuracy:           {acc:.4f}  ({acc*100:.2f}%)
+ROC-AUC:           {auc:.4f}
+
+Confusion Matrix:
+  True Negatives:   {cm[0,0]}
+  False Positives:  {cm[0,1]}
+  False Negatives:  {cm[1,0]}
+  True Positives:   {cm[1,1]}
+
+Classification Rates:
+  Sensitivity:      {cm[1,1]/(cm[1,0]+cm[1,1]):.4f}
+  Specificity:      {cm[0,0]/(cm[0,0]+cm[0,1]):.4f}
+  Precision:        {cm[1,1]/(cm[1,1]+cm[0,1]):.4f}
+
+Dataset Split:
+  Training samples: {len(X_train)}
+  Testing samples:  {len(X_test)}
+"""
+
+ax.text(0.1, 0.5, metrics_text, fontsize=12, family='monospace',
+        verticalalignment='center', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+plt.tight_layout()
+plt.savefig('Output 2.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: Output 2.png")
+plt.close()
+
+# 8. Feature Importance Ranked
+fig, ax = plt.subplots(figsize=(10, 8))
+coef_sorted = coef_df.sort_values('AbsCoef', ascending=True)
+colors = ['#d7553a' if x < 0 else '#2ca02c' for x in coef_sorted['Coefficient']]
+ax.barh(coef_sorted['Feature'], coef_sorted['Coefficient'], color=colors)
+ax.set_xlabel('Coefficient Value', fontsize=12, fontweight='bold')
+ax.set_title('Feature Importance (Ranked by Absolute Coefficient)', fontsize=14, fontweight='bold')
+ax.axvline(x=0, color='black', linestyle='-', linewidth=1)
+ax.grid(True, alpha=0.3, axis='x')
+plt.tight_layout()
+plt.savefig('Output 3.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: Output 3.png")
+plt.close()
+
+# 9. Cross-Validation Scores
+from sklearn.model_selection import cross_val_score
+cv_scores = cross_val_score(model, X_train_s, y_train, cv=5, scoring='roc_auc')
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.bar(range(1, len(cv_scores)+1), cv_scores, color='#0088cc', alpha=0.7, edgecolor='black')
+ax.axhline(y=cv_scores.mean(), color='red', linestyle='--', linewidth=2, label=f'Mean: {cv_scores.mean():.4f}')
+ax.set_xlabel('Fold', fontsize=12, fontweight='bold')
+ax.set_ylabel('ROC-AUC Score', fontsize=12, fontweight='bold')
+ax.set_title('5-Fold Cross-Validation Scores', fontsize=14, fontweight='bold')
+ax.set_ylim([0.7, 1.0])
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+plt.tight_layout()
+plt.savefig('Output 4.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: Output 4.png")
+plt.close()
+
+# 10. Misclassification Analysis
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+fig.suptitle('Misclassification Analysis', fontsize=14, fontweight='bold')
+
+# FP vs FN counts by feature
+fp_rates = []
+fn_rates = []
+feature_names = []
+
+for feature in FEATURES[:6]:  # Top 6 features
+    fp_mean = FP[feature].mean() if len(FP) > 0 else 0
+    fn_mean = FN[feature].mean() if len(FN) > 0 else 0
+    feature_names.append(feature)
+    fp_rates.append(fp_mean)
+    fn_rates.append(fn_mean)
+
+x = np.arange(len(feature_names))
+width = 0.35
+axes[0].bar(x - width/2, fp_rates, width, label='False Positives', color='#d7553a', alpha=0.7)
+axes[0].bar(x + width/2, fn_rates, width, label='False Negatives', color='#2ca02c', alpha=0.7)
+axes[0].set_ylabel('Mean Feature Value', fontsize=11, fontweight='bold')
+axes[0].set_title('FP vs FN Mean Feature Values', fontweight='bold')
+axes[0].set_xticks(x)
+axes[0].set_xticklabels(feature_names, rotation=45, ha='right')
+axes[0].legend()
+axes[0].grid(True, alpha=0.3, axis='y')
+
+# Misclassification rates
+categories = ['True\nNegatives', 'False\nPositives', 'False\nNegatives', 'True\nPositives']
+counts = [cm[0,0], cm[0,1], cm[1,0], cm[1,1]]
+colors_cm = ['#2ca02c', '#d7553a', '#d7553a', '#2ca02c']
+axes[1].bar(categories, counts, color=colors_cm, alpha=0.7, edgecolor='black', linewidth=1.5)
+axes[1].set_ylabel('Count', fontsize=11, fontweight='bold')
+axes[1].set_title('Confusion Matrix Breakdown', fontweight='bold')
+for i, v in enumerate(counts):
+    axes[1].text(i, v + 2, str(v), ha='center', fontweight='bold')
+axes[1].grid(True, alpha=0.3, axis='y')
+
+plt.tight_layout()
+plt.savefig('Output 5.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: Output 5.png")
+plt.close()
+
+# 11. Dataset Pairplot (Reduced features for clarity)
+pairplot_features = ['Age', 'Pclass', 'Sex_enc', 'FareLog', 'Survived']
+pairplot_df = df[pairplot_features].copy()
+pairplot_df['Survived'] = pairplot_df['Survived'].map({0: 'Died', 1: 'Survived'})
+
+pp = sns.pairplot(pairplot_df, hue='Survived', palette={'Died': '#d7553a', 'Survived': '#2ca02c'},
+                  diag_kind='hist', plot_kws={'alpha': 0.6}, diag_kws={'alpha': 0.6})
+pp.fig.suptitle('Dataset Pairplot (Selected Features)', fontsize=14, fontweight='bold', y=1.001)
+plt.tight_layout()
+plt.savefig('dataset_pairplot.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: dataset_pairplot.png")
+plt.close()
+
+# 12. Scaling Comparison (Before vs After)
+fig, axes = plt.subplots(2, 3, figsize=(16, 8))
+fig.suptitle('Feature Scaling Comparison (Before vs After StandardScaler)', fontsize=14, fontweight='bold')
+
+sample_features = ['Age', 'FareLog', 'Pclass', 'FamilySize', 'AgeGroup', 'Sex_enc']
+for idx, feature in enumerate(sample_features):
+    row = idx // 3
+    col = idx % 3
+    
+    # Original values
+    axes[0, col].hist(X_train[feature], bins=30, alpha=0.7, color='#0088cc', edgecolor='black')
+    axes[0, col].set_title(f'{feature} (Original)', fontweight='bold')
+    axes[0, col].set_ylabel('Frequency')
+    axes[0, col].grid(True, alpha=0.3)
+    
+    # Scaled values
+    axes[1, col].hist(X_train_s[:, FEATURES.index(feature)], bins=30, alpha=0.7, color='#2ca02c', edgecolor='black')
+    axes[1, col].set_title(f'{feature} (Scaled)', fontweight='bold')
+    axes[1, col].set_ylabel('Frequency')
+    axes[1, col].grid(True, alpha=0.3)
+
+axes[0, 0].set_ylabel('Frequency (Original)', fontsize=11, fontweight='bold')
+axes[1, 0].set_ylabel('Frequency (Scaled)', fontsize=11, fontweight='bold')
+
+plt.tight_layout()
+plt.savefig('scaling_comparison.png', dpi=150, bbox_inches='tight')
+print("[OK] Visualization saved: scaling_comparison.png")
+plt.close()
+
+print(f"\n{'='*50}")
+print("All visualizations generated successfully!")
+print(f"{'='*50}")
 
 # ─────────────────────────────────────────────────────────────
 # 9. SAVE A LIGHTWEIGHT MODEL ARTIFACT
@@ -270,3 +518,4 @@ for args in examples:
     pred, prob = predict_survival(*args)
     verdict = 'SURVIVED' if pred else 'DIED'
     print(f"  Class {args[0]}, {args[1]}, age {args[2]} → {verdict} ({prob:.1%} survival prob)")
+
