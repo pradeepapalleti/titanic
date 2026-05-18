@@ -35,140 +35,83 @@ print(f"Dataset shape: {df.shape}")
 print(df.head())
 
 # ─────────────────────────────────────────────────────────────
-# 2. EXPLORATORY DATA ANALYSIS
+# 2. QUICK DATA PREP
 # ─────────────────────────────────────────────────────────────
-print("\n--- Missing Values ---")
-print(df.isnull().sum())
+print("\nPreprocessing data...")
 
-print(f"\nOverall survival rate: {df['Survived'].mean():.2%}")
-print(f"Survival by sex:\n{df.groupby('Sex')['Survived'].mean()}")
-print(f"Survival by class:\n{df.groupby('Pclass')['Survived'].mean()}")
+# Fill missing values
+df['Age'].fillna(df['Age'].median(), inplace=True)
+df['Embarked'].fillna('S', inplace=True)
+df['Fare'].fillna(df['Fare'].median(), inplace=True)
 
-# ─────────────────────────────────────────────────────────────
-# 3. PREPROCESSING & FEATURE ENGINEERING
-# ─────────────────────────────────────────────────────────────
-age_median = df['Age'].median()
-
-df['Age']      = df['Age'].fillna(age_median)
-df['Embarked'] = df['Embarked'].fillna('S')
-df['Fare']     = df['Fare'].fillna(df['Fare'].median())
-
-# Encode categorical
-df['Sex_enc']    = (df['Sex'] == 'female').astype(int)
+# Encode & create features
+df['Sex_enc'] = (df['Sex'] == 'female').astype(int)
 df['Embarked_C'] = (df['Embarked'] == 'C').astype(int)
 df['Embarked_Q'] = (df['Embarked'] == 'Q').astype(int)
-
-# Derived features
 df['FamilySize'] = df['SibSp'] + df['Parch'] + 1
-df['IsAlone']    = (df['FamilySize'] == 1).astype(int)
-df['FareLog']    = np.log1p(df['Fare'])
+df['IsAlone'] = (df['FamilySize'] == 1).astype(int)
+df['FareLog'] = np.log1p(df['Fare'])
+df['AgeGroup'] = pd.cut(df['Age'], bins=[0, 12, 18, 35, 60, 100], labels=[0, 1, 2, 3, 4]).astype(int)
 
-def age_group(a):
-    """Bin age into 5 meaningful groups."""
-    if a <= 12:  return 0   # Child
-    if a <= 18:  return 1   # Teen
-    if a <= 35:  return 2   # YoungAdult
-    if a <= 60:  return 3   # MiddleAged
-    return 4                # Senior
-
-df['AgeGroup'] = df['Age'].apply(age_group)
-
-FEATURES = [
-    'Pclass', 'Sex_enc', 'Age', 'SibSp', 'Parch',
-    'FareLog', 'Embarked_C', 'Embarked_Q',
-    'FamilySize', 'IsAlone', 'AgeGroup'
-]
-TARGET = 'Survived'
+FEATURES = ['Pclass', 'Sex_enc', 'Age', 'SibSp', 'Parch', 'FareLog', 
+            'Embarked_C', 'Embarked_Q', 'FamilySize', 'IsAlone', 'AgeGroup']
 
 X = df[FEATURES].astype(float)
-y = df[TARGET]
-assert X.isnull().sum().sum() == 0, "NaN values remain!"
-print(f"\nFeature matrix shape: {X.shape}")
+y = df['Survived']
+print(f"Data shape: {X.shape}")
 
 # ─────────────────────────────────────────────────────────────
-# 4. TRAIN / TEST SPLIT & SCALING
+# 3. TRAIN / TEST SPLIT & SCALING
 # ─────────────────────────────────────────────────────────────
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
-print(f"Train: {len(X_train)}  |  Test: {len(X_test)}")
 
 scaler = StandardScaler()
 X_train_s = scaler.fit_transform(X_train)
-X_test_s  = scaler.transform(X_test)
+X_test_s = scaler.transform(X_test)
 
 # ─────────────────────────────────────────────────────────────
-# 5. TRAIN LOGISTIC REGRESSION
+# 4. TRAIN & EVALUATE MODEL
 # ─────────────────────────────────────────────────────────────
-model = LogisticRegression(
-    C=1.0,             # regularization strength (inverse)
-    max_iter=1000,
-    random_state=42,
-    solver='lbfgs',
-)
+model = LogisticRegression(C=1.0, max_iter=1000, random_state=42, solver='lbfgs')
 model.fit(X_train_s, y_train)
-print("\nModel trained [OK]")
 
-# ─────────────────────────────────────────────────────────────
-# 6. EVALUATION
-# ─────────────────────────────────────────────────────────────
 y_pred = model.predict(X_test_s)
 y_prob = model.predict_proba(X_test_s)[:, 1]
-
 acc = accuracy_score(y_test, y_pred)
 auc = roc_auc_score(y_test, y_prob)
-cm  = confusion_matrix(y_test, y_pred)
+cm = confusion_matrix(y_test, y_pred)
 
-print(f"\n{'='*40}")
-print(f"Accuracy : {acc:.4f}")
-print(f"ROC-AUC  : {auc:.4f}")
-print(f"\nConfusion Matrix:\n{cm}")
-print(f"\nClassification Report:\n{classification_report(y_test, y_pred)}")
-
-# ─────────────────────────────────────────────────────────────
-# 7. MISCLASSIFICATION ANALYSIS
-# ─────────────────────────────────────────────────────────────
-test_df = X_test.copy()
-test_df['Survived']  = y_test.values
-test_df['Predicted'] = y_pred
-test_df['Prob']      = y_prob.round(4)
-test_df['Correct']   = y_pred == y_test.values
-
-misclassified = test_df[~test_df['Correct']]
-FP = misclassified[misclassified['Survived'] == 0]   # died, predicted survived
-FN = misclassified[misclassified['Survived'] == 1]   # survived, predicted died
-
-print(f"\n{'='*40}")
-print(f"Total misclassified : {len(misclassified)}")
-print(f"False Positives (FP): {len(FP)}  — died but predicted survived")
-print(f"False Negatives (FN): {len(FN)}  — survived but predicted died")
-
-print("\n--- FP Profile (died, predicted survived) ---")
-print(FP[FEATURES + ['Prob']].describe().round(3))
-
-print("\n--- FN Profile (survived, predicted died) ---")
-print(FN[FEATURES + ['Prob']].describe().round(3))
-
-print("\n--- FP vs FN Mean Comparison ---")
-compare = pd.DataFrame({
-    'FP_mean': FP[FEATURES].mean(),
-    'FN_mean': FN[FEATURES].mean(),
-    'All_mean': X_test[FEATURES].mean()
-}).round(3)
-print(compare)
+print(f"\n--- Model Performance ---")
+print(f"Accuracy: {acc:.4f}")
+print(f"ROC-AUC:  {auc:.4f}")
+print(f"\nConfusion Matrix:\n{cm}\n{classification_report(y_test, y_pred)}")
 
 # ─────────────────────────────────────────────────────────────
-# 8. FEATURE IMPORTANCE (COEFFICIENTS)
+# 5. FEATURE IMPORTANCE & SAVE MODEL
 # ─────────────────────────────────────────────────────────────
 coef_df = pd.DataFrame({
-    'Feature':     FEATURES,
+    'Feature': FEATURES,
     'Coefficient': model.coef_[0],
-}).assign(AbsCoef=lambda d: d['Coefficient'].abs()) \
-  .sort_values('AbsCoef', ascending=False)
+    'AbsCoef': np.abs(model.coef_[0]),
+}).sort_values('Coefficient', key=abs, ascending=False)
 
-print(f"\n{'='*40}")
-print("Feature Coefficients (standardized):")
-print(coef_df.to_string(index=False))
+print(f"\nTop Features:\n{coef_df.to_string(index=False)}")
+
+# Save model
+model_data = {
+    'model_type': 'logistic_regression',
+    'intercept': float(model.intercept_[0]),
+    'coef_values': model.coef_[0].tolist(),
+    'feature_means': scaler.mean_.tolist(),
+    'feature_stds': scaler.scale_.tolist(),
+    'features': FEATURES,
+    'metrics': {'accuracy': float(acc), 'roc_auc': float(auc)},
+}
+with open('titanic_model.json', 'w') as f:
+    json.dump(model_data, f, indent=2)
+print("\nModel saved: titanic_model.json")
 
 # ─────────────────────────────────────────────────────────────
 # 8B. GENERATE COMPREHENSIVE VISUALIZATIONS
@@ -259,7 +202,7 @@ plt.close()
 
 # 4. Feature Correlation Heatmap
 fig, ax = plt.subplots(figsize=(12, 10))
-correlation_matrix = df[FEATURES + [TARGET]].corr()
+correlation_matrix = df[FEATURES + ['Survived']].corr()
 sns.heatmap(correlation_matrix, annot=True, fmt='.2f', cmap='coolwarm', 
             center=0, ax=ax, square=True, cbar_kws={'label': 'Correlation'})
 ax.set_title('Feature Correlation Heatmap', fontsize=14, fontweight='bold', pad=20)
@@ -370,50 +313,23 @@ plt.savefig('Output 4.png', dpi=150, bbox_inches='tight')
 print("[OK] Visualization saved: Output 4.png")
 plt.close()
 
-# 10. Misclassification Analysis
-fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-fig.suptitle('Misclassification Analysis', fontsize=14, fontweight='bold')
-
-# FP vs FN counts by feature
-fp_rates = []
-fn_rates = []
-feature_names = []
-
-for feature in FEATURES[:6]:  # Top 6 features
-    fp_mean = FP[feature].mean() if len(FP) > 0 else 0
-    fn_mean = FN[feature].mean() if len(FN) > 0 else 0
-    feature_names.append(feature)
-    fp_rates.append(fp_mean)
-    fn_rates.append(fn_mean)
-
-x = np.arange(len(feature_names))
-width = 0.35
-axes[0].bar(x - width/2, fp_rates, width, label='False Positives', color='#d7553a', alpha=0.7)
-axes[0].bar(x + width/2, fn_rates, width, label='False Negatives', color='#2ca02c', alpha=0.7)
-axes[0].set_ylabel('Mean Feature Value', fontsize=11, fontweight='bold')
-axes[0].set_title('FP vs FN Mean Feature Values', fontweight='bold')
-axes[0].set_xticks(x)
-axes[0].set_xticklabels(feature_names, rotation=45, ha='right')
-axes[0].legend()
-axes[0].grid(True, alpha=0.3, axis='y')
-
-# Misclassification rates
+# 9. Confusion Matrix Breakdown
+fig, ax = plt.subplots(figsize=(10, 6))
 categories = ['True\nNegatives', 'False\nPositives', 'False\nNegatives', 'True\nPositives']
 counts = [cm[0,0], cm[0,1], cm[1,0], cm[1,1]]
 colors_cm = ['#2ca02c', '#d7553a', '#d7553a', '#2ca02c']
-axes[1].bar(categories, counts, color=colors_cm, alpha=0.7, edgecolor='black', linewidth=1.5)
-axes[1].set_ylabel('Count', fontsize=11, fontweight='bold')
-axes[1].set_title('Confusion Matrix Breakdown', fontweight='bold')
+ax.bar(categories, counts, color=colors_cm, alpha=0.7, edgecolor='black', linewidth=1.5)
+ax.set_ylabel('Count', fontsize=11, fontweight='bold')
+ax.set_title('Confusion Matrix Breakdown', fontsize=12, fontweight='bold')
 for i, v in enumerate(counts):
-    axes[1].text(i, v + 2, str(v), ha='center', fontweight='bold')
-axes[1].grid(True, alpha=0.3, axis='y')
-
+    ax.text(i, v + 2, str(v), ha='center', fontweight='bold')
+ax.grid(True, alpha=0.3, axis='y')
 plt.tight_layout()
 plt.savefig('Output 5.png', dpi=150, bbox_inches='tight')
 print("[OK] Visualization saved: Output 5.png")
 plt.close()
 
-# 11. Dataset Pairplot (Reduced features for clarity)
+# 10. Dataset Pairplot (Reduced features for clarity)
 pairplot_features = ['Age', 'Pclass', 'Sex_enc', 'FareLog', 'Survived']
 pairplot_df = df[pairplot_features].copy()
 pairplot_df['Survived'] = pairplot_df['Survived'].map({0: 'Died', 1: 'Survived'})
@@ -426,7 +342,7 @@ plt.savefig('dataset_pairplot.png', dpi=150, bbox_inches='tight')
 print("[OK] Visualization saved: dataset_pairplot.png")
 plt.close()
 
-# 12. Scaling Comparison (Before vs After)
+# 11. Scaling Comparison (Before vs After)
 fig, axes = plt.subplots(2, 3, figsize=(16, 8))
 fig.suptitle('Feature Scaling Comparison (Before vs After StandardScaler)', fontsize=14, fontweight='bold')
 
@@ -450,72 +366,7 @@ for idx, feature in enumerate(sample_features):
 axes[0, 0].set_ylabel('Frequency (Original)', fontsize=11, fontweight='bold')
 axes[1, 0].set_ylabel('Frequency (Scaled)', fontsize=11, fontweight='bold')
 
-plt.tight_layout()
-plt.savefig('scaling_comparison.png', dpi=150, bbox_inches='tight')
-print("[OK] Visualization saved: scaling_comparison.png")
-plt.close()
-
 print(f"\n{'='*50}")
 print("All visualizations generated successfully!")
 print(f"{'='*50}")
-
-# ─────────────────────────────────────────────────────────────
-# 9. SAVE A LIGHTWEIGHT MODEL ARTIFACT
-# ─────────────────────────────────────────────────────────────
-model_artifact = {
-    'model_type': 'logistic_regression',
-    'trained_on': 'titanic.csv',
-    'intercept': float(model.intercept_[0]),
-    'coef_values': model.coef_[0].tolist(),
-    'feature_means': scaler.mean_.tolist(),
-    'feature_stds': scaler.scale_.tolist(),
-    'features': FEATURES,
-    'metrics': {
-        'accuracy': float(acc),
-        'roc_auc': float(auc),
-        'train_samples': int(len(X_train)),
-        'test_samples': int(len(X_test)),
-    },
-}
-
-with open('titanic_model.json', 'w', encoding='utf-8') as f:
-    json.dump(model_artifact, f, indent=2)
-
-print("\nModel saved: titanic_model.json")
-
-# ─────────────────────────────────────────────────────────────
-# 10. INFERENCE EXAMPLE (how to use saved model)
-# ─────────────────────────────────────────────────────────────
-def predict_survival(pclass, sex, age, sibsp, parch, fare, embarked,
-                     model=model, scaler=scaler):
-    """
-    Predict survival for a new passenger.
-    Returns (prediction, probability).
-    """
-    sex_enc    = 1 if sex == 'female' else 0
-    emb_c      = 1 if embarked == 'C' else 0
-    emb_q      = 1 if embarked == 'Q' else 0
-    family     = sibsp + parch + 1
-    is_alone   = int(family == 1)
-    fare_log   = np.log1p(fare)
-    age_grp    = age_group(age)
-
-    feats = np.array([[pclass, sex_enc, age, sibsp, parch, fare_log,
-                       emb_c, emb_q, family, is_alone, age_grp]])
-    feats_s = scaler.transform(feats)
-    pred    = model.predict(feats_s)[0]
-    prob    = model.predict_proba(feats_s)[0, 1]
-    return pred, prob
-
-# Example predictions
-examples = [
-    (1, 'female', 25, 1, 0, 80, 'C'),   # 1st class young woman → likely survived
-    (3, 'male',   35, 0, 0, 8,  'S'),   # 3rd class man alone → likely died
-    (2, 'female', 10, 0, 2, 25, 'S'),   # 2nd class girl with family → likely survived
-]
-print("\n--- Example Predictions ---")
-for args in examples:
-    pred, prob = predict_survival(*args)
-    verdict = 'SURVIVED' if pred else 'DIED'
-    print(f"  Class {args[0]}, {args[1]}, age {args[2]} → {verdict} ({prob:.1%} survival prob)")
 

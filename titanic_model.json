@@ -1,6 +1,5 @@
 {
   "model_type": "logistic_regression",
-  "trained_on": "titanic.csv",
   "intercept": -0.6620743408803399,
   "coef_values": [
     -0.7250172121322029,
@@ -56,8 +55,6 @@
   ],
   "metrics": {
     "accuracy": 0.7988826815642458,
-    "roc_auc": 0.8494071146245061,
-    "train_samples": 712,
-    "test_samples": 179
+    "roc_auc": 0.8494071146245061
   }
 }
